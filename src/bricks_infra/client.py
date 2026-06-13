@@ -47,6 +47,7 @@ class InfraClient:
         tier: str = "local",
         temperature: float = 0.2,
         max_tokens: int = 2048,
+        think: bool = False,
     ) -> str:
         return self._post(
             "/generate",
@@ -55,6 +56,7 @@ class InfraClient:
                 "tier": tier,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
+                "think": think,
             },
         )["text"]
 

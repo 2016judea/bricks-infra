@@ -43,6 +43,7 @@ class GenerateRequest(BaseModel):
     tier: str = "local"
     temperature: float = 0.2
     max_tokens: int = Field(2048, ge=1)
+    think: bool = False  # local (Ollama) tier only; reasoning off by default
 
 
 @app.get("/health")
@@ -83,6 +84,7 @@ def generate(req: GenerateRequest) -> dict:
             tier=req.tier,
             temperature=req.temperature,
             max_tokens=req.max_tokens,
+            think=req.think,
         )
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
