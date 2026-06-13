@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     cloud_api_key: str = ""
     cloud_llm: str = "deepseek-chat"
 
+    # Image generation (cloud; Qwen-Image-2512 via fal.ai by default).
+    # Qwen-Image is the open model that renders legible embedded text / brand
+    # names best — the thing ad creative and mailers actually need.
+    fal_api_key: str = ""
+    image_base_url: str = "https://fal.run"
+    image_model: str = "fal-ai/qwen-image"
+
     # Service
     host: str = "127.0.0.1"
     port: int = 8088

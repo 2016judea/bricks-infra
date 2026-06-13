@@ -60,6 +60,25 @@ class InfraClient:
             },
         )["text"]
 
+    def generate_image(
+        self,
+        prompt: str,
+        *,
+        image_size: str = "square_hd",
+        num_images: int = 1,
+        seed: int | None = None,
+    ) -> list[str]:
+        """Generate image(s) via Qwen-Image; returns a list of image URLs."""
+        return self._post(
+            "/image",
+            {
+                "prompt": prompt,
+                "image_size": image_size,
+                "num_images": num_images,
+                "seed": seed,
+            },
+        )["urls"]
+
     def _get(self, path: str) -> dict:
         r = self._http.get(f"{self.base_url}{path}")
         r.raise_for_status()

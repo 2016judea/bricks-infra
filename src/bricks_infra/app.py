@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from bricks_infra import embed as embed_mod
 from bricks_infra import generate as gen_mod
+from bricks_infra import image as image_mod
 from bricks_infra import rerank as rerank_mod
 from bricks_infra.config import get_settings
 
@@ -31,6 +32,13 @@ class RerankRequest(BaseModel):
     query: str
     passages: list[str]
     top_k: int | None = None
+
+
+class ImageRequest(BaseModel):
+    prompt: str
+    image_size: str = "square_hd"
+    num_images: int = Field(1, ge=1, le=4)
+    seed: int | None = None
 
 
 class Message(BaseModel):
@@ -56,6 +64,7 @@ def health() -> dict:
         "rerank_model": s.rerank_model,
         "local_llm": s.local_llm,
         "cloud_llm": s.cloud_llm if s.cloud_api_key else None,
+        "image_model": s.image_model if s.fal_api_key else None,
     }
 
 
@@ -89,3 +98,17 @@ def generate(req: GenerateRequest) -> dict:
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"tier": req.tier, "text": text}
+
+
+@app.post("/image")
+def image(req: ImageRequest) -> dict:
+    try:
+        urls = image_mod.generate_image(
+            req.prompt,
+            image_size=req.image_size,
+            num_images=req.num_images,
+            seed=req.seed,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"model": image_mod.model_name(), "urls": urls}
