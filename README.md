@@ -8,7 +8,7 @@ into every worker process:
 |---|---|---|---|
 | `/embed` | Dense embeddings (**BGE-M3**) | Local, Metal GPU | the old `all-MiniLM-L6-v2` |
 | `/rerank` | Cross-encoder reranking (**bge-reranker-v2-m3**) | Local, Metal GPU | *(new — there was none)* |
-| `/generate` | Cheap "grunt" LLM calls | Local (Ollama) **or** cloud | offloads grunt phases from Opus |
+| `/generate` | Cheap "grunt" LLM calls | Local (Ollama) only | offloads grunt phases from Opus |
 
 **What this is not:** it does **not** replace Opus 4.8 for report synthesis or the
 writer phases. Report quality is the product — that stays in `bricks`. This serves
@@ -20,7 +20,8 @@ Phase-1 domain passes) where a 10x-cheaper model is good enough.
 - ✅ **Embeddings + reranker** — ~2.3 GB each, run comfortably on the Metal GPU.
 - ✅ **Small grunt LLM** — Qwen3-8B/14B via native Ollama fits.
 - ❌ **Frontier open-weights** (DeepSeek V4, Kimi K2.6, GLM-5.1) — 400B–1T params,
-  do **not** fit in 24 GB. Reached via the `cloud` tier (any OpenAI-compatible API).
+  do **not** fit in 24 GB. We do **not** reach for a cloud LLM; work beyond the
+  local model's quality falls back to **Opus** in the bricks repo.
 - ⚠️ **Docker note:** Docker on macOS can't use the Metal GPU, so the *model server*
   runs **natively** (Ollama + uv). Containerize only stateless services if you want.
 
@@ -58,7 +59,7 @@ infra = InfraClient()                                   # http://127.0.0.1:8088
 
 vecs   = infra.embed(["great tacos but slow service"])
 top    = infra.rerank("complaints about wait times", passages, top_k=8)
-answer = infra.generate([{"role": "user", "content": "..."}], tier="local")
+answer = infra.generate([{"role": "user", "content": "..."}])   # local Ollama
 ```
 
 ### Migrating the Chroma embedder

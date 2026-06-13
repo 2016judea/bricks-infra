@@ -21,12 +21,10 @@ class Settings(BaseSettings):
     embed_model: str = "BAAI/bge-m3"
     rerank_model: str = "BAAI/bge-reranker-v2-m3"
 
-    # LLM routing
+    # LLM: local-only via Ollama. There is no cloud LLM tier by design — work that
+    # exceeds the local model's quality stays on Opus in the bricks repo.
     ollama_url: str = "http://localhost:11434"
     local_llm: str = "qwen3:14b"
-    cloud_base_url: str = "https://api.deepseek.com/v1"
-    cloud_api_key: str = ""
-    cloud_llm: str = "deepseek-chat"
 
     # Image generation (cloud; Qwen-Image-2512 via fal.ai by default).
     # Qwen-Image is the open model that renders legible embedded text / brand

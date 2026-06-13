@@ -44,16 +44,15 @@ class InfraClient:
         self,
         messages: list[dict],
         *,
-        tier: str = "local",
         temperature: float = 0.2,
         max_tokens: int = 2048,
         think: bool = False,
     ) -> str:
+        """Local LLM generation (Ollama). For heavier work, use Opus in bricks."""
         return self._post(
             "/generate",
             {
                 "messages": messages,
-                "tier": tier,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
                 "think": think,

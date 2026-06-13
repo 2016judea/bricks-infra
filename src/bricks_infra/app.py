@@ -6,7 +6,7 @@ Endpoints
   GET  /health            -> liveness + which models are configured
   POST /embed             -> {texts:[...]}                  -> {model, vectors:[[...]]}
   POST /rerank            -> {query, passages:[...], top_k}  -> {model, results:[{index,score}]}
-  POST /generate          -> {messages:[...], tier}          -> {tier, text}
+  POST /generate          -> {messages:[...], think}          -> {model, text}
 """
 
 from __future__ import annotations
@@ -48,10 +48,9 @@ class Message(BaseModel):
 
 class GenerateRequest(BaseModel):
     messages: list[Message]
-    tier: str = "local"
     temperature: float = 0.2
     max_tokens: int = Field(2048, ge=1)
-    think: bool = False  # local (Ollama) tier only; reasoning off by default
+    think: bool = False  # Qwen3 reasoning; off by default for grunt work
 
 
 @app.get("/health")
@@ -63,7 +62,6 @@ def health() -> dict:
         "embed_model": s.embed_model,
         "rerank_model": s.rerank_model,
         "local_llm": s.local_llm,
-        "cloud_llm": s.cloud_llm if s.cloud_api_key else None,
         "image_model": s.image_model if s.fal_api_key else None,
     }
 
@@ -87,17 +85,13 @@ def rerank(req: RerankRequest) -> dict:
 
 @app.post("/generate")
 def generate(req: GenerateRequest) -> dict:
-    try:
-        text = gen_mod.generate(
-            [m.model_dump() for m in req.messages],
-            tier=req.tier,
-            temperature=req.temperature,
-            max_tokens=req.max_tokens,
-            think=req.think,
-        )
-    except (RuntimeError, ValueError) as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"tier": req.tier, "text": text}
+    text = gen_mod.generate(
+        [m.model_dump() for m in req.messages],
+        temperature=req.temperature,
+        max_tokens=req.max_tokens,
+        think=req.think,
+    )
+    return {"model": get_settings().local_llm, "text": text}
 
 
 @app.post("/image")
