@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+.ruff_cache/
+# HuggingFace model cache lives in ~/.cache by default; don't commit anything large.
+models_cache/
