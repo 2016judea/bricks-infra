@@ -28,8 +28,8 @@ Phase-1 domain passes) where a 10x-cheaper model is good enough.
 
 ```bash
 cd bricks-infra
-uv sync                      # installs deps into .venv
-cp .env.example .env         # then fill in cloud key if you want the cloud tier
+uv sync --extra server --extra models   # service + local model deps into .venv
+cp .env.example .env                     # then fill in cloud key if you want the cloud tier
 
 # For the local /generate tier:
 brew install ollama
