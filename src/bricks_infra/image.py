@@ -11,9 +11,13 @@ creative variants for A/B testing.
 
 from __future__ import annotations
 
+import time
+
 import httpx
 
 from bricks_infra.config import get_settings
+
+_MAX_ATTEMPTS = 3
 
 
 def generate_image(
@@ -37,14 +41,26 @@ def generate_image(
     if seed is not None:
         payload["seed"] = seed
 
-    resp = httpx.post(
-        f"{s.image_base_url}/{s.image_model}",
-        headers={"Authorization": f"Key {s.fal_api_key}"},
-        json=payload,
-        timeout=timeout,
-    )
-    resp.raise_for_status()
-    return [img["url"] for img in resp.json().get("images", [])]
+    url = f"{s.image_base_url}/{s.image_model}"
+    headers = {"Authorization": f"Key {s.fal_api_key}"}
+
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_ATTEMPTS):
+        try:
+            resp = httpx.post(url, headers=headers, json=payload, timeout=timeout)
+            # Retry server-side hiccups (5xx) but fail fast on 4xx (auth, balance, bad input).
+            if resp.status_code >= 500:
+                resp.raise_for_status()
+            resp.raise_for_status()
+            return [img["url"] for img in resp.json().get("images", [])]
+        except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+            # Don't retry deterministic client errors (4xx).
+            if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code < 500:
+                raise
+            last_exc = exc
+            if attempt < _MAX_ATTEMPTS - 1:
+                time.sleep(2.0 * (attempt + 1))
+    raise RuntimeError(f"fal image request failed after {_MAX_ATTEMPTS} attempts: {last_exc}")
 
 
 def model_name() -> str:
