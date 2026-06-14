@@ -27,7 +27,7 @@ def generate(
     temperature: float = 0.2,
     max_tokens: int = 2048,
     think: bool = False,
-    timeout: float = 120.0,
+    timeout: float = 600.0,
 ) -> str:
     """Run a local chat completion and return the assistant text.
 
