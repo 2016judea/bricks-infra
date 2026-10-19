@@ -103,6 +103,10 @@ def image(req: ImageRequest) -> dict:
             num_images=req.num_images,
             seed=req.seed,
         )
-    except RuntimeError as exc:
+    except image_mod.ImageUpstreamError as exc:
+        # fal was down or dropped the connection three times: a 502, so a caller's
+        # retry logic fires and the key is not blamed. Before, this was a 400.
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except RuntimeError as exc:  # the key is unset: the caller cannot retry out of this
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"model": image_mod.model_name(), "urls": urls}

@@ -20,6 +20,10 @@ from bricks_infra.config import get_settings
 _MAX_ATTEMPTS = 3
 
 
+class ImageUpstreamError(RuntimeError):
+    """fal did not answer after every retry: the caller's request was fine, the upstream was not."""
+
+
 def generate_image(
     prompt: str,
     *,
@@ -60,7 +64,7 @@ def generate_image(
             last_exc = exc
             if attempt < _MAX_ATTEMPTS - 1:
                 time.sleep(2.0 * (attempt + 1))
-    raise RuntimeError(f"fal image request failed after {_MAX_ATTEMPTS} attempts: {last_exc}")
+    raise ImageUpstreamError(f"fal image request failed after {_MAX_ATTEMPTS} attempts: {last_exc}")
 
 
 def model_name() -> str:
