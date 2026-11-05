@@ -48,7 +48,7 @@ cached in `~/.cache/huggingface` thereafter).
 Add this repo as a path dependency in `bricks/pyproject.toml`:
 
 ```toml
-dependencies = ["bricks-infra @ file:///Users/aidan/Desktop/bricks-infra", ...]
+dependencies = ["bricks-infra @ file:///Users/aidan/Desktop/workspace/bricks-infra", ...]
 ```
 
 Then:
